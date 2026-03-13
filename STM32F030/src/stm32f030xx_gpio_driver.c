@@ -1,4 +1,4 @@
-#include "stm32f446xx_gpio_driver.h"
+#include "../includes/stm32f030xx_gpio_driver.h"
 
 /*Peripheral Clock Setup*/
 
@@ -36,23 +36,10 @@ void GPIO_PeriClockControl(GPIO_RegDef_t *pGPIOx, uint8_t clockState)
         {
             GPIOD_PCLK_EN();
         }
-        else if(pGPIOx == GPIOE)
-        {
-            GPIOE_PCLK_EN();
-        }
         else if(pGPIOx == GPIOF)
         {
             GPIOF_PCLK_EN();
         }
-        else if(pGPIOx == GPIOG)
-        {
-            GPIOG_PCLK_EN();
-        }
-        else if(pGPIOx == GPIOH)
-        {
-            GPIOH_PCLK_EN();
-        }
-
     }
     else
     {
@@ -72,22 +59,10 @@ void GPIO_PeriClockControl(GPIO_RegDef_t *pGPIOx, uint8_t clockState)
         {
             GPIOD_PCLK_DIS();
         }
-        else if(pGPIOx == GPIOE)
-        {
-            GPIOE_PCLK_DIS();
-        }
         else if(pGPIOx == GPIOF)
         {
             GPIOF_PCLK_DIS();
         }
-        else if(pGPIOx == GPIOG)
-        {
-            GPIOG_PCLK_DIS();
-        }
-        else if(pGPIOx == GPIOH)
-        {
-            GPIOH_PCLK_DIS();
-        }            
 
     }
 }
@@ -105,34 +80,7 @@ void GPIO_Init(GPIO_Handle_t *pGPIOHandle)
     }
     else
     {
-        if(pGPIOHandle->GPIO_PinConfig.GPIO_PinMode == GPIO_MODE_IT_FT)
-        {
-            //1. Configure the FTSR register
-            EXTI->FTSR |= (1 << pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber);
-            EXTI->RTSR &= ~(1 << pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber);
-        }
-        else if(pGPIOHandle->GPIO_PinConfig.GPIO_PinMode == GPIO_MODE_IT_RT)
-        {
-            //2. Configure the RTSR register
-            EXTI->RTSR |= (1 << pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber);
-            EXTI->FTSR &= ~(1 << pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber);
-        }
-        else if(pGPIOHandle->GPIO_PinConfig.GPIO_PinMode == GPIO_MODE_IT_RFT)
-        {
-            //3. Configure both the FTSR and RTSR registers
-            EXTI->RTSR |= (1 << pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber);
-            EXTI->FTSR |= (1 << pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber);
-        }
 
-        //2. Configure the GPIO port selection in SYSCFG_EXTICR register
-        uint8_t temp1 = pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber / 4;
-        uint8_t temp2 = pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber % 4;
-        uint8_t portCode = GPIO_BASEADDR_TO_CODE(pGPIOHandle->pGPIOx);
-        SYSCFG_PCLK_EN();
-        SYSCFG->EXTICR[temp1] = portCode << (temp2*4);
-
-        //3. Enable the EXTI interrupt delivery using IMR
-        EXTI->IMR |= (1 << pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber);
     }
     temp = 0;
     
@@ -228,7 +176,7 @@ void GPIO_WriteToOutputPin(GPIO_RegDef_t *pGPIOx, uint8_t pinNumber, uint8_t val
     {
         pGPIOx->ODR |= (1 << pinNumber);
     }
-    else if(value == GPIO_PIN_RESET)
+    else
     {
         pGPIOx->ODR &= ~(1 << pinNumber);
     }
@@ -272,12 +220,12 @@ void GPIO_IRQInterruptConfig(uint8_t IRQNumber, uint8_t pinState)
         else if(IRQNumber > 31 && IRQNumber < 64)
         {
             //program ICER1 register
-            *NVIC_ICER1 |= (1 << (IRQNumber % 32));
+            *NVIC_ICER0 |= (1 << (IRQNumber % 32));
         }
         else if(IRQNumber >= 64 && IRQNumber < 96)
         {
             //program ICER2 register
-            *NVIC_ICER2 |= (1 << (IRQNumber % 64));
+            *NVIC_ICER0 |= (1 << (IRQNumber % 64));
         }
     }
 }
@@ -288,7 +236,7 @@ void GPIO_IRQPriorityConfig(uint8_t IRQNumber, uint32_t IRQPriority)
     uint8_t iprx_sec = IRQNumber % 4;
 
     uint8_t shift_amount = (8 * iprx_sec) + (8 - NO_PR_BITS_IMPLEMENTED);
-    *(NVIC_PR_BASEADDR + (iprx*4)) |= (IRQPriority << shift_amount);
+    *(NVIC_PR_BASEADDR + (iprx)) |= (IRQPriority << shift_amount);
 }
 
 void GPIO_IRQHandling(uint8_t pinNumber)
