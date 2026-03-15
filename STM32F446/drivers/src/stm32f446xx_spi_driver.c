@@ -111,9 +111,9 @@ void SPI_Init(SPI_Handle_t *pSPIHandle)
         tempReg |= (pSPIHandle->SPI_PinConfig.SPI_CPOL << SPI_CR1_CPOL);
 
         //6. Set clock phase
-        tempReg |= (pSPIHandle->SPI_PinConfig.SPI_CPOL << SPI_CR1_CPHA);
+        tempReg |= (pSPIHandle->SPI_PinConfig.SPI_CPHA << SPI_CR1_CPHA);
 
-        pSPIHandle->pSPIx->CR1 = tempReg;
+        pSPIHandle->pSPIx->CR1 |= tempReg;
 
 }
 
@@ -182,7 +182,7 @@ void SPI_SendData(SPI_RegDef_t *pSPIx, uint8_t *pTxBuffer, uint32_t length)
 {
     while(length > 0)
     {
-        while(!(pSPIx->SR & (1<<1)));
+        while(SPI_FlagStatus(pSPIx, SPI_TXE_FLAG) == FLAG_RESET);
 
         if(pSPIx->CR1 & (1<<SPI_CR1_DFF))
         {
@@ -200,6 +200,29 @@ void SPI_SendData(SPI_RegDef_t *pSPIx, uint8_t *pTxBuffer, uint32_t length)
              pTxBuffer++;
         }
 
+    }
+}
+
+uint8_t SPI_FlagStatus(SPI_RegDef_t *pSPIx, uint32_t flagName)
+{
+    if(pSPIx->SR & flagName)
+    {
+        return FLAG_SET;
+    }
+    
+    return FLAG_RESET;
+}
+
+
+void SPI_SSOEConfig(SPI_RegDef_t *pSPIx, uint8_t state)
+{
+    if(state == ENABLE)
+    {
+        pSPIx->CR2 |= (1 << SPI_CR2_SSOE);
+    }
+    else
+    {
+        pSPIx->CR2 &= ~(1 << SPI_CR2_SSOE);
     }
 }
 /******************************************************************************

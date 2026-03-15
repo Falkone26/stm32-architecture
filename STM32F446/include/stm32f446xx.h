@@ -288,6 +288,8 @@ typedef struct
 #define RESET           DISABLE
 #define GPIO_PIN_SET    SET
 #define GPIO_PIN_RESET  RESET
+#define FLAG_RESET      RESET
+#define FLAG_SET        SET
 
 //SPI Peripheral macros, SPI control register 1
 #define SPI_CR1_CPHA        0
@@ -419,6 +421,6 @@ typedef struct
 
 #include "stm32f446xx_gpio_driver.h"
 #include "stm32f446xx_spi_driver.h"
-#include "stm32f446xx_i2c_driver.h"
+//#include "stm32f446xx_i2c_driver.h"
 
 #endif

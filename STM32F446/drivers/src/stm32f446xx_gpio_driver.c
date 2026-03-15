@@ -163,7 +163,7 @@ void GPIO_Init(GPIO_Handle_t *pGPIOHandle)
         temp2 = pGPIOHandle->GPIO_PinConfig.GPIO_PinNumber % 8;
 
 
-        pGPIOHandle->pGPIOx->AFR[temp1] &= (0xF << (4*temp2));
+        pGPIOHandle->pGPIOx->AFR[temp1] &= ~(0xF << (4*temp2));
         pGPIOHandle->pGPIOx->AFR[temp1] |= (pGPIOHandle->GPIO_PinConfig.GPIO_AltMode <<(4 * temp2));
 
 
